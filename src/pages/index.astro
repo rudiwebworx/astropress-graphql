@@ -27,14 +27,14 @@ const morePosts = allPosts.slice(1)
 		<h1 class="text-center mt-20 mb-20"><span class="text-6xl font-extrabold">Blog</span></h1>
 		<div class="m-auto">
 			<HeroPost href={heroPost.node.slug} title={heroPost.node.title} excerpt={heroPost.node.excerpt}
-				img={heroPost.node.featuredImage.node.sourceUrl} author={heroPost.node.author.node.name}
-				alt={heroPost.node.featuredImage.node.altText} />
+				img={heroPost.node.featuredImage?.node?.sourceUrl ?? ''} author={heroPost.node.author.node.name}
+				alt={heroPost.node.featuredImage?.node?.altText ?? ''} />
 		</div>
 		<div class="grid grid-cols-3 gap-y-20 mt-6 mb-32 md:gap-y-32 md:gap-x-16 lg:gap-x-4">
 			{morePosts.map((post) => (
 			<PostCard href={post.node.slug} title={post.node.title} excerpt={post.node.excerpt}
-				img={post.node.featuredImage.node.sourceUrl} author={post.node.author.node.name}
-				alt={heroPost.node.featuredImage.node.altText} />
+				img={post.node.featuredImage?.node?.sourceUrl ?? ''} author={post.node.author.node.name}
+				alt={post.node.featuredImage?.node?.altText ?? ''} />
 			))}
 		</div>
 	</main>

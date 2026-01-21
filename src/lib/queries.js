@@ -64,3 +64,16 @@ export const findPostBySlug = `query findPostBySlug($slug: String!) {
         }
   }
 }`;
+
+export const getMenuByLocation = `query GetMenuByLocation($location: MenuLocationEnum!) {
+  menuItems(where: { location: $location }) {
+    nodes {
+      id
+      label
+      url
+      path
+      parentId
+      cssClasses
+    }
+  }
+}`;
