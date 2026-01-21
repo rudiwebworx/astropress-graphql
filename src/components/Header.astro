@@ -1,25 +1,63 @@
 ---
-import { getMenuByLocation } from '../lib/queries'
+import { getMenuByLocation, getSiteSettings, getSiteLogoById } from '../lib/queries'
 
-export interface Props {
-    siteName?: string;
-}
+const apiUrl = `${import.meta.env.WORDPRESS_URL}/${import.meta.env.GRAPHQL_API_PATH}`;
+const wpUrl = import.meta.env.WORDPRESS_URL;
 
-const { siteName = 'LOGO' } = Astro.props;
-
-const response = await fetch(`${import.meta.env.WORDPRESS_URL}/${import.meta.env.GRAPHQL_API_PATH}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-        query: getMenuByLocation,
-        variables: {
-            location: 'PRIMARY',
-        },
+// Fetch menu and site settings in parallel
+const [menuResponse, siteResponse] = await Promise.all([
+    fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            query: getMenuByLocation,
+            variables: {
+                location: 'PRIMARY',
+            },
+        }),
     }),
-});
+    fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            query: getSiteSettings,
+        }),
+    }),
+]);
 
-const json = await response.json();
-const menuItems = json.data?.menuItems?.nodes ?? [];
+const menuJson = await menuResponse.json();
+const siteJson = await siteResponse.json();
+
+const menuItems = menuJson.data?.menuItems?.nodes ?? [];
+const siteTitle = siteJson.data?.generalSettings?.title ?? 'Site';
+
+// Get the custom_logo ID from WordPress using the index endpoint
+let siteLogo = null;
+try {
+    const indexResponse = await fetch(`${wpUrl}/wp-json`);
+    if (indexResponse.ok) {
+        const indexData = await indexResponse.json();
+        const logoId = indexData.site_logo;
+
+        if (logoId) {
+            // Fetch the logo media item via GraphQL
+            const logoResponse = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    query: getSiteLogoById,
+                    variables: {
+                        id: String(logoId),
+                    },
+                }),
+            });
+            const logoJson = await logoResponse.json();
+            siteLogo = logoJson.data?.mediaItem;
+        }
+    }
+} catch (e) {
+    // Logo fetch failed, will use site title as fallback
+}
 ---
 
 <header class="header">
@@ -30,11 +68,19 @@ const menuItems = json.data?.menuItems?.nodes ?? [];
         </button>
 
         <a href="/" class="site-logo">
-            {siteName}
+            {siteLogo?.sourceUrl ? (
+                <img
+                    src={siteLogo.sourceUrl}
+                    alt={siteLogo.altText || siteTitle}
+                    class="logo-img"
+                />
+            ) : (
+                siteTitle
+            )}
         </a>
 
         <div class="nav-actions">
-            <a href="/login" class="btn btn-secondary">Login</a>
+            
             <a href="/join" class="btn btn-primary">Join</a>
         </div>
     </nav>
@@ -113,6 +159,14 @@ const menuItems = json.data?.menuItems?.nodes ?? [];
         font-weight: 700;
         text-decoration: none;
         letter-spacing: 0.1em;
+        display: flex;
+        align-items: center;
+    }
+
+    .logo-img {
+        height: 24px;
+        width: auto;
+        object-fit: contain;
     }
 
     .nav-actions {
@@ -141,6 +195,8 @@ const menuItems = json.data?.menuItems?.nodes ?? [];
     .btn-primary {
         background-color: #a3e635;
         color: #000;
+        border: 0;
+        min-width: 100px;
     }
 
     .mobile-menu {

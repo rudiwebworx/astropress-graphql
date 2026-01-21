@@ -77,3 +77,17 @@ export const getMenuByLocation = `query GetMenuByLocation($location: MenuLocatio
     }
   }
 }`;
+
+export const getSiteSettings = `query GetSiteSettings {
+  generalSettings {
+    title
+    description
+  }
+}`;
+
+export const getSiteLogoById = `query GetSiteLogoById($id: ID!) {
+  mediaItem(id: $id, idType: DATABASE_ID) {
+    sourceUrl
+    altText
+  }
+}`;
