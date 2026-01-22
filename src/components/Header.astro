@@ -100,9 +100,11 @@ try {
 
 <style>
     .header {
-        position: sticky;
+        position: fixed;
         top: 0;
-        z-index: 100;
+        left: 0;
+        right: 0;
+        z-index: 10000;
         width: 100%;
         display: flex;
         justify-content: center;
@@ -114,10 +116,10 @@ try {
         align-items: center;
         justify-content: space-between;
         background-color: #1a1a1a;
-        border-radius: 9999px;
+        border-radius: 16px;
         padding: 0.5rem 0.5rem 0.5rem 1.25rem;
         gap: 1rem;
-        max-width: 400px;
+        max-width: 700px;
         width: 100%;
     }
 
@@ -164,7 +166,7 @@ try {
     }
 
     .logo-img {
-        height: 24px;
+        height: 38px;
         width: auto;
         object-fit: contain;
     }

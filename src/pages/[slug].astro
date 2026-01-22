@@ -2,37 +2,68 @@
 import BlogPost from "../components/BlogPost.astro";
 import Layout from "../layouts/Layout.astro";
 
-import { getFirstPostsQuery } from '../lib/queries'
+import { getFirstPostsQuery, getAllPagesQuery } from '../lib/queries'
 
 export async function getStaticPaths() {
-    const response = await fetch(`${import.meta.env.WORDPRESS_URL}/${import.meta.env.GRAPHQL_API_PATH}`,
-        {
+    const apiUrl = `${import.meta.env.WORDPRESS_URL}/${import.meta.env.GRAPHQL_API_PATH}`;
+
+    // Fetch both posts and pages in parallel
+    const [postsResponse, pagesResponse] = await Promise.all([
+        fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 query: getFirstPostsQuery,
                 variables: {
-                    first: 20,
+                    first: 100,
                 },
             }),
-        })
+        }),
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                query: getAllPagesQuery,
+            }),
+        }),
+    ]);
 
-    const json = await response.json();
-    const posts = json.data.posts.edges
-    return posts.map((post) => {
-        return {
-            params: {
-                slug: post.node.slug
-            },
-            props: { post },
-        }
-    })
+    const postsJson = await postsResponse.json();
+    const pagesJson = await pagesResponse.json();
+
+    const posts = postsJson.data?.posts?.edges ?? [];
+    const pages = pagesJson.data?.pages?.edges ?? [];
+
+    // Map posts with type identifier
+    const postPaths = posts.map((post) => ({
+        params: { slug: post.node.slug },
+        props: {
+            item: post.node,
+            type: 'post'
+        },
+    }));
+
+    // Map pages with type identifier
+    const pagePaths = pages.map((page) => ({
+        params: { slug: page.node.slug },
+        props: {
+            item: page.node,
+            type: 'page'
+        },
+    }));
+
+    return [...postPaths, ...pagePaths];
 }
+
 const { slug } = Astro.params;
-const { post } = Astro.props;
+const { item, type } = Astro.props;
+
+const title = item.title;
+const content = item.content;
+const img = item.featuredImage?.node?.sourceUrl ?? '';
+const altText = item.featuredImage?.node?.altText ?? '';
 ---
 
-<Layout title={post.node.title} metaDescription={post.node.title}>
-    <BlogPost title={post.node.title} content={post.node.content} img={post.node.featuredImage.node.sourceUrl}
-        altText={post.node.featuredImage.node.altText} />
+<Layout title={title} metaDescription={title}>
+    <BlogPost title={title} content={content} img={img} altText={altText} />
 </Layout>

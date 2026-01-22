@@ -2,10 +2,50 @@
 import Layout from "../layouts/Layout.astro";
 import HeroPost from "../components/HeroPost.astro";
 import PostCard from "../components/PostCard.astro";
-import { getFirstPostsQuery } from '../lib/queries'
+import BlogPost from "../components/BlogPost.astro";
+import { getFirstPostsQuery, getReadingSettings, getPageById } from '../lib/queries'
 
-const response = await fetch(`${import.meta.env.WORDPRESS_URL}/${import.meta.env.GRAPHQL_API_PATH}`,
-	{
+const apiUrl = `${import.meta.env.WORDPRESS_URL}/${import.meta.env.GRAPHQL_API_PATH}`;
+
+// First, get the reading settings to determine what to show on the front page
+const settingsResponse = await fetch(apiUrl, {
+	method: 'POST',
+	headers: { 'Content-Type': 'application/json' },
+	body: JSON.stringify({
+		query: getReadingSettings,
+	}),
+});
+
+const settingsJson = await settingsResponse.json();
+const readingSettings = settingsJson.data?.allSettings;
+
+// Check if a static page is set as the front page
+const showOnFront = readingSettings?.readingSettingsShowOnFront; // 'page' or 'posts'
+const frontPageId = readingSettings?.readingSettingsPageOnFront;
+
+let frontPage = null;
+let allPosts = [];
+let heroPost = null;
+let morePosts = [];
+
+if (showOnFront === 'page' && frontPageId) {
+	// Fetch the static front page
+	const pageResponse = await fetch(apiUrl, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			query: getPageById,
+			variables: {
+				id: String(frontPageId),
+			},
+		}),
+	});
+
+	const pageJson = await pageResponse.json();
+	frontPage = pageJson.data?.page;
+} else {
+	// Fetch blog posts for the default blog listing
+	const postsResponse = await fetch(apiUrl, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({
@@ -14,28 +54,43 @@ const response = await fetch(`${import.meta.env.WORDPRESS_URL}/${import.meta.env
 				first: 20,
 			},
 		}),
-	})
+	});
 
-const json = await response.json();
-const allPosts = json.data.posts.edges
-const heroPost = allPosts[0]
-const morePosts = allPosts.slice(1)
+	const postsJson = await postsResponse.json();
+	allPosts = postsJson.data?.posts?.edges ?? [];
+	heroPost = allPosts[0];
+	morePosts = allPosts.slice(1);
+}
+
+const pageTitle = frontPage?.title ?? 'Blog';
+const metaDescription = frontPage?.title ?? 'My Own Blog';
 ---
 
-<Layout title="Blog" metaDescription="My Own Blog">
-	<main class="mx-8">
-		<h1 class="text-center mt-20 mb-20"><span class="text-6xl font-extrabold">Blog</span></h1>
-		<div class="m-auto">
-			<HeroPost href={heroPost.node.slug} title={heroPost.node.title} excerpt={heroPost.node.excerpt}
-				img={heroPost.node.featuredImage?.node?.sourceUrl ?? ''} author={heroPost.node.author.node.name}
-				alt={heroPost.node.featuredImage?.node?.altText ?? ''} />
-		</div>
-		<div class="grid grid-cols-3 gap-y-20 mt-6 mb-32 md:gap-y-32 md:gap-x-16 lg:gap-x-4">
-			{morePosts.map((post) => (
-			<PostCard href={post.node.slug} title={post.node.title} excerpt={post.node.excerpt}
-				img={post.node.featuredImage?.node?.sourceUrl ?? ''} author={post.node.author.node.name}
-				alt={post.node.featuredImage?.node?.altText ?? ''} />
-			))}
-		</div>
-	</main>
+<Layout title={pageTitle} metaDescription={metaDescription}>
+	{frontPage ? (
+		<BlogPost
+			title={frontPage.title}
+			content={frontPage.content}
+			img={frontPage.featuredImage?.node?.sourceUrl ?? ''}
+			altText={frontPage.featuredImage?.node?.altText ?? ''}
+		/>
+	) : (
+		<main class="mx-8">
+			<h1 class="text-center mt-20 mb-20"><span class="text-6xl font-extrabold">Blog</span></h1>
+			{heroPost && (
+				<div class="m-auto">
+					<HeroPost href={heroPost.node.slug} title={heroPost.node.title} excerpt={heroPost.node.excerpt}
+						img={heroPost.node.featuredImage?.node?.sourceUrl ?? ''} author={heroPost.node.author.node.name}
+						alt={heroPost.node.featuredImage?.node?.altText ?? ''} />
+				</div>
+			)}
+			<div class="grid grid-cols-3 gap-y-20 mt-6 mb-32 md:gap-y-32 md:gap-x-16 lg:gap-x-4">
+				{morePosts.map((post) => (
+				<PostCard href={post.node.slug} title={post.node.title} excerpt={post.node.excerpt}
+					img={post.node.featuredImage?.node?.sourceUrl ?? ''} author={post.node.author.node.name}
+					alt={post.node.featuredImage?.node?.altText ?? ''} />
+				))}
+			</div>
+		</main>
+	)}
 </Layout>

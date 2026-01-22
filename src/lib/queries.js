@@ -91,3 +91,58 @@ export const getSiteLogoById = `query GetSiteLogoById($id: ID!) {
     altText
   }
 }`;
+
+export const getAllPagesQuery = `
+query AllPages {
+  pages(first: 100) {
+    edges {
+      node {
+        title
+        slug
+        content
+        featuredImage {
+          node {
+            sourceUrl
+            altText
+          }
+        }
+      }
+    }
+  }
+}
+`;
+
+export const getPageBySlug = `query GetPageBySlug($slug: ID!) {
+  page(id: $slug, idType: URI) {
+    title
+    content
+    featuredImage {
+      node {
+        sourceUrl
+        altText
+      }
+    }
+  }
+}`;
+
+export const getReadingSettings = `query GetReadingSettings {
+  allSettings {
+    readingSettingsPageOnFront
+    readingSettingsPostsPerPage
+    readingSettingsShowOnFront
+  }
+}`;
+
+export const getPageById = `query GetPageById($id: ID!) {
+  page(id: $id, idType: DATABASE_ID) {
+    title
+    slug
+    content
+    featuredImage {
+      node {
+        sourceUrl
+        altText
+      }
+    }
+  }
+}`;

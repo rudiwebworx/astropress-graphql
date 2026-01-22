@@ -1,5 +1,10 @@
 ---
 import Header from '../components/Header.astro';
+import PageTransition from '../components/PageTransition.astro';
+
+// Gutenberg block styles
+import '@wordpress/block-library/build-style/style.css';
+import '@wordpress/block-library/build-style/theme.css';
 
 export interface Props {
 	title: string;
@@ -21,6 +26,7 @@ const { title, metaDescription } = Astro.props as Props;
 </head>
 
 <body>
+	<PageTransition />
 	<Header />
 	<slot />
 </body>

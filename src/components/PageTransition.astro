@@ -1,0 +1,101 @@
+---
+// Side-by-side horizontal page transition
+---
+
+<style is:global>
+    /* Add padding for fixed header */
+    body {
+        padding-top: 80px;
+    }
+
+    /* Page content wrapper for transitions */
+    .page-content-wrapper {
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    /* Exiting animation - slide current page to the left */
+    body.is-navigating .page-content-wrapper {
+        animation: slideOutLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    /* Entering animation - slide new page in from the right */
+    body.is-entering .page-content-wrapper {
+        animation: slideInFromRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes slideOutLeft {
+        0% {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        100% {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+    }
+
+    @keyframes slideInFromRight {
+        0% {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        100% {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>
+
+<script>
+    const ANIMATION_DURATION = 500;
+
+    function isInternalLink(href: string | null): boolean {
+        if (!href) return false;
+        return !href.startsWith('http') &&
+               !href.startsWith('#') &&
+               !href.startsWith('mailto:') &&
+               !href.startsWith('tel:');
+    }
+
+    // Handle all internal link clicks
+    document.addEventListener('click', (e) => {
+        const link = (e.target as HTMLElement).closest('a');
+        if (!link) return;
+
+        const href = link.getAttribute('href');
+
+        // Skip external links, anchors, and special links
+        if (!isInternalLink(href) ||
+            link.hasAttribute('download') ||
+            link.getAttribute('target') === '_blank') {
+            return;
+        }
+
+        e.preventDefault();
+
+        // Set flag for the new page
+        sessionStorage.setItem('pageTransition', 'true');
+
+        // Add navigating class to trigger exit animation
+        document.body.classList.add('is-navigating');
+
+        // Navigate after animation completes
+        setTimeout(() => {
+            window.location.href = href!;
+        }, ANIMATION_DURATION);
+    });
+
+    // On page load, check if we came from a transition
+    if (sessionStorage.getItem('pageTransition') === 'true') {
+        sessionStorage.removeItem('pageTransition');
+
+        // Add entering class for slide-in animation
+        document.body.classList.add('is-entering');
+
+        // Remove the class after animation completes
+        setTimeout(() => {
+            document.body.classList.remove('is-entering');
+        }, ANIMATION_DURATION);
+    }
+</script>
