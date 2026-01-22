@@ -28,7 +28,9 @@ const { title, metaDescription } = Astro.props as Props;
 <body>
 	<PageTransition />
 	<Header />
-	<slot />
+	<div class="page-content-wrapper">
+		<slot />
+	</div>
 </body>
 
 </html>
@@ -46,6 +48,7 @@ const { title, metaDescription } = Astro.props as Props;
 
 	body {
 		margin: 0;
+		overflow-x: hidden;
 	}
 
 	:global(code) {
