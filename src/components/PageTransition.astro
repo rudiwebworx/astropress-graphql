@@ -15,65 +15,48 @@
         background-color: #eee;
         min-height: calc(100vh);
         margin-top: -120px;
-        transform-origin: center top;
+        transform-origin: center center;
         will-change: transform, border-radius;
-        transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-                    border-radius 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-                    box-shadow 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    /* Phase 1: Shrink - current page shrinks and gets rounded */
-    body.is-shrinking .page-content-wrapper {
-        transform: scale(0.65) translateX(0);
-        border-radius: 24px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        overflow: hidden;
+    /* Exit animation - shrink then slide left */
+    body.is-exiting .page-content-wrapper {
+        animation: exitAnimation 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
 
-    /* Phase 2: Slide out - page slides to the left */
-    body.is-sliding-out .page-content-wrapper {
-        transform: scale(0.65) translateX(-120%);
-        border-radius: 24px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        overflow: hidden;
-        transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    /* Phase 3: Enter shrunk - new page starts off-screen and slides in */
+    /* Enter animation - slide in from right then expand */
     body.is-entering .page-content-wrapper {
-        transform: scale(0.65) translateX(120%);
-        border-radius: 24px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        overflow: hidden;
-        animation: slideInShrunk 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        animation: enterAnimation 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
 
-    /* Phase 4: Expand - new page expands to full */
-    body.is-expanding .page-content-wrapper {
-        transform: scale(0.65) translateX(0);
-        border-radius: 24px;
-        overflow: hidden;
-        animation: expandToFull 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    }
-
-    @keyframes slideInShrunk {
+    @keyframes exitAnimation {
         0% {
-            transform: scale(0.65) translateX(120%);
+            transform: scale(1) translateX(0);
+            border-radius: 0;
+            box-shadow: none;
+        }
+        40% {
+            transform: scale(0.75) translateX(0);
             border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
         }
         100% {
-            transform: scale(0.65) translateX(0);
+            transform: scale(0.75) translateX(-100%);
             border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
         }
     }
 
-    @keyframes expandToFull {
+    @keyframes enterAnimation {
         0% {
-            transform: scale(0.65) translateX(0);
+            transform: scale(0.75) translateX(100%);
             border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+        }
+        50% {
+            transform: scale(0.75) translateX(0);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
         }
         100% {
             transform: scale(1) translateX(0);
@@ -140,15 +123,18 @@
         width: 100%;
     }
 
+    /* WordPress columns block */
+    .wp-block-columns {
+        gap: 2em;
+    }
+
     /* Fix for alignfull inside page-content-wrapper during transitions */
     .page-content-wrapper {
         overflow-x: clip;
     }
 
-    body.is-shrinking .page-content-wrapper,
-    body.is-sliding-out .page-content-wrapper,
-    body.is-entering .page-content-wrapper,
-    body.is-expanding .page-content-wrapper {
+    body.is-exiting .page-content-wrapper,
+    body.is-entering .page-content-wrapper {
         overflow: hidden;
     }
 </style>
@@ -181,37 +167,25 @@
         // Set flag for the new page
         sessionStorage.setItem('pageTransition', 'true');
 
-        // Phase 1: Shrink
-        document.body.classList.add('is-shrinking');
+        // Start exit animation (shrink then slide left)
+        document.body.classList.add('is-exiting');
 
-        // Phase 2: Slide out after shrink (600ms transition)
-        setTimeout(() => {
-            document.body.classList.remove('is-shrinking');
-            document.body.classList.add('is-sliding-out');
-        }, 600);
-
-        // Navigate after slide out (600ms + 500ms)
+        // Navigate after exit animation completes
         setTimeout(() => {
             window.location.href = href!;
-        }, 1100);
+        }, 800);
     });
 
     // On page load, check if we came from a transition
     if (sessionStorage.getItem('pageTransition') === 'true') {
         sessionStorage.removeItem('pageTransition');
 
-        // Phase 3: Enter shrunk and slide in
+        // Start enter animation (slide in from right then expand)
         document.body.classList.add('is-entering');
 
-        // Phase 4: Expand after slide in completes (800ms)
+        // Clean up after animation completes
         setTimeout(() => {
             document.body.classList.remove('is-entering');
-            document.body.classList.add('is-expanding');
-        }, 800);
-
-        // Clean up after expand completes (800ms + 600ms)
-        setTimeout(() => {
-            document.body.classList.remove('is-expanding');
-        }, 1400);
+        }, 1000);
     }
 </script>
