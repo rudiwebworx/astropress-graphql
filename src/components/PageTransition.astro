@@ -15,14 +15,16 @@
         background-color: #eee;
         min-height: calc(100vh);
         margin-top: -120px;
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                    border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                    box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-origin: center top;
+        will-change: transform, border-radius;
+        transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                    border-radius 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                    box-shadow 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     /* Phase 1: Shrink - current page shrinks and gets rounded */
     body.is-shrinking .page-content-wrapper {
-        transform: scale(0.65);
+        transform: scale(0.65) translateX(0);
         border-radius: 24px;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         overflow: hidden;
@@ -34,42 +36,120 @@
         border-radius: 24px;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         overflow: hidden;
+        transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    /* Phase 3: Enter shrunk - new page starts shrunk and slides in from right */
+    /* Phase 3: Enter shrunk - new page starts off-screen and slides in */
     body.is-entering .page-content-wrapper {
-        transform: scale(0.65) translateX(0);
+        transform: scale(0.65) translateX(120%);
         border-radius: 24px;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         overflow: hidden;
-        animation: slideInShrunk 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        animation: slideInShrunk 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
 
     /* Phase 4: Expand - new page expands to full */
     body.is-expanding .page-content-wrapper {
-        animation: expandToFull 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        transform: scale(0.65) translateX(0);
+        border-radius: 24px;
+        overflow: hidden;
+        animation: expandToFull 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
 
     @keyframes slideInShrunk {
         0% {
             transform: scale(0.65) translateX(120%);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
         100% {
             transform: scale(0.65) translateX(0);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
     }
 
     @keyframes expandToFull {
         0% {
-            transform: scale(0.65);
+            transform: scale(0.65) translateX(0);
             border-radius: 24px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
         100% {
-            transform: scale(1);
+            transform: scale(1) translateX(0);
             border-radius: 0;
             box-shadow: none;
         }
+    }
+
+    /* WordPress Gutenberg alignment classes */
+    .entry-content {
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    .entry-content .alignwide {
+        max-width: 100%;
+        margin-left: -2rem;
+        margin-right: -2rem;
+    }
+
+    .entry-content .alignfull,
+    .entry-content .wp-block-cover.alignfull,
+    .entry-content .wp-block-image.alignfull,
+    .entry-content .wp-block-group.alignfull {
+        max-width: none !important;
+        width: 100vw !important;
+        margin-left: calc(50% - 50vw) !important;
+        margin-right: calc(50% - 50vw) !important;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .entry-content .alignleft {
+        float: left;
+        margin-right: 2rem;
+        max-width: 50%;
+    }
+
+    .entry-content .alignright {
+        float: right;
+        margin-left: 2rem;
+        max-width: 50%;
+    }
+
+    .entry-content .aligncenter {
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+    }
+
+    /* Clear floats */
+    .entry-content::after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    /* Ensure alignfull images and covers work properly */
+    .entry-content .alignfull img,
+    .entry-content .alignfull video {
+        width: 100%;
+    }
+
+    /* Fix for alignfull inside page-content-wrapper during transitions */
+    .page-content-wrapper {
+        overflow-x: clip;
+    }
+
+    body.is-shrinking .page-content-wrapper,
+    body.is-sliding-out .page-content-wrapper,
+    body.is-entering .page-content-wrapper,
+    body.is-expanding .page-content-wrapper {
+        overflow: hidden;
     }
 </style>
 
@@ -104,16 +184,16 @@
         // Phase 1: Shrink
         document.body.classList.add('is-shrinking');
 
-        // Phase 2: Slide out after shrink
+        // Phase 2: Slide out after shrink (600ms transition)
         setTimeout(() => {
             document.body.classList.remove('is-shrinking');
             document.body.classList.add('is-sliding-out');
-        }, 400);
+        }, 600);
 
-        // Navigate after slide out
+        // Navigate after slide out (600ms + 500ms)
         setTimeout(() => {
             window.location.href = href!;
-        }, 700);
+        }, 1100);
     });
 
     // On page load, check if we came from a transition
@@ -123,15 +203,15 @@
         // Phase 3: Enter shrunk and slide in
         document.body.classList.add('is-entering');
 
-        // Phase 4: Expand after slide in
+        // Phase 4: Expand after slide in completes (800ms)
         setTimeout(() => {
             document.body.classList.remove('is-entering');
             document.body.classList.add('is-expanding');
-        }, 500);
+        }, 800);
 
-        // Clean up
+        // Clean up after expand completes (800ms + 600ms)
         setTimeout(() => {
             document.body.classList.remove('is-expanding');
-        }, 900);
+        }, 1400);
     }
 </script>

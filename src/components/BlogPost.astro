@@ -15,6 +15,6 @@ const { title, content, img, altText } = Astro.props
         <img src={img} width="1024" alt={altText || ''} />
     </div>
 )}
-<div class="entry-content wp-block-post-content mt-10 w-2/3 m-auto mb-20">
+<div class="entry-content wp-block-post-content mt-10 mb-20">
     <section set:html={content} />
 </div>
