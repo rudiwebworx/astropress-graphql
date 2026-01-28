@@ -3,249 +3,101 @@
 ---
 
 <style is:global>
-    /* Add padding for fixed header */
+    /* Light mode (default) */
+    :root {
+        --color-bg-body: #222;
+        --color-bg-content: #eee;
+        --color-text: #1a1a1a;
+    }
+
+    /* Dark mode via class */
+    :root.dark {
+        --color-bg-body: #111;
+        --color-bg-content: #313131;
+        --color-text: #eee;
+    }
+
+    /* Dark mode via system preference (when no manual override) */
+    @media (prefers-color-scheme: dark) {
+        :root:not(.light) {
+            --color-bg-body: #111;
+            --color-bg-content: #313131;
+            --color-text: #eee;
+        }
+    }
+
     body {
-        padding-top: 80px;
-        background-color: #222;
+        background-color: var(--color-bg-body);
+        min-height: 100vh;
+        overflow-x: hidden;
+        color: var(--color-text);
     }
 
     /* Page content wrapper default state */
     .page-content-wrapper {
         position: relative;
-        background-color: #eee;
-        min-height: calc(100vh);
-        margin-top: -120px;
+        background-color: var(--color-bg-content);
+        min-height: 100vh;
+        padding-top: 80px;
         transform-origin: center center;
         will-change: transform, border-radius;
+        color: var(--color-text);
     }
 
     /* Exit animation - shrink then slide left */
     body.is-exiting .page-content-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         animation: exitAnimation 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
 
     /* Enter animation - slide in from right then expand */
     body.is-entering .page-content-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         animation: enterAnimation 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
 
     @keyframes exitAnimation {
         0% {
-            transform: scale(1) translateX(0);
+            transform: scale(1) translateX(0) translateY(0);
             border-radius: 0;
             box-shadow: none;
         }
-        35% {
-            transform: scale(0.75) translateX(0);
+        40% {
+            transform: scale(0.6) translateX(0) translateY(0);
             border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
         100% {
-            transform: scale(0.75) translateX(-150%);
+            transform: scale(0.6) translateX(-200%) translateY(0);
             border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
     }
 
     @keyframes enterAnimation {
         0% {
-            transform: scale(0.75) translateX(150%);
+            transform: scale(0.6) translateX(200%) translateY(0);
             border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
         50% {
-            transform: scale(0.75) translateX(0);
+            transform: scale(0.6) translateX(0) translateY(0);
             border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
         100% {
-            transform: scale(1) translateX(0);
+            transform: scale(1) translateX(0) translateY(0);
             border-radius: 0;
             box-shadow: none;
         }
-    }
-
-    /* WordPress Gutenberg alignment classes */
-    .entry-content {
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
-        padding-left: 1.5rem;
-        padding-right: 1.5rem;
-    }
-
-    .entry-content .alignwide {
-        max-width: 100%;
-        margin-left: -2rem;
-        margin-right: -2rem;
-    }
-
-    .entry-content .alignfull,
-    .entry-content .wp-block-cover.alignfull,
-    .entry-content .wp-block-image.alignfull,
-    .entry-content .wp-block-group.alignfull {
-        max-width: none !important;
-        width: 100vw !important;
-        margin-left: calc(50% - 50vw) !important;
-        margin-right: calc(50% - 50vw) !important;
-        padding-left: 0;
-        padding-right: 0;
-    }
-
-    .entry-content .alignleft {
-        float: left;
-        margin-right: 2rem;
-        max-width: 50%;
-    }
-
-    .entry-content .alignright {
-        float: right;
-        margin-left: 2rem;
-        max-width: 50%;
-    }
-
-    .entry-content .aligncenter {
-        margin-left: auto;
-        margin-right: auto;
-        text-align: center;
-    }
-
-    /* Clear floats */
-    .entry-content::after {
-        content: "";
-        display: table;
-        clear: both;
-    }
-
-    /* Ensure alignfull images and covers work properly */
-    .entry-content .alignfull img,
-    .entry-content .alignfull video {
-        width: 100%;
-    }
-
-    /* WordPress columns block */
-    .wp-block-columns {
-        gap: 2em;
-    }
-
-    /* WordPress Cover Block */
-    .wp-block-cover {
-        position: relative;
-        background-size: cover;
-        background-position: center center;
-        min-height: 430px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
-    }
-
-    .wp-block-cover__background {
-        position: absolute;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        z-index: 1;
-    }
-
-    /* Default opacity when has-background-dim is present without specific level */
-    .wp-block-cover__background.has-background-dim:not([class*="-background-dim-"]) {
-        opacity: 0.5;
-    }
-
-    /* Cover block overlay opacity levels - applied directly on the span */
-    .wp-block-cover__background.has-background-dim-0 {
-        opacity: 0;
-    }
-
-    .wp-block-cover__background.has-background-dim-10 {
-        opacity: 0.1;
-    }
-
-    .wp-block-cover__background.has-background-dim-20 {
-        opacity: 0.2;
-    }
-
-    .wp-block-cover__background.has-background-dim-30 {
-        opacity: 0.3;
-    }
-
-    .wp-block-cover__background.has-background-dim-40 {
-        opacity: 0.4;
-    }
-
-    .wp-block-cover__background.has-background-dim-50 {
-        opacity: 0.5;
-    }
-
-    .wp-block-cover__background.has-background-dim-60 {
-        opacity: 0.6;
-    }
-
-    .wp-block-cover__background.has-background-dim-70 {
-        opacity: 0.7;
-    }
-
-    .wp-block-cover__background.has-background-dim-80 {
-        opacity: 0.8;
-    }
-
-    .wp-block-cover__background.has-background-dim-90 {
-        opacity: 0.9;
-    }
-
-    .wp-block-cover__background.has-background-dim-100 {
-        opacity: 1;
-    }
-
-    .wp-block-cover__image-background,
-    .wp-block-cover__video-background {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        max-width: none;
-        max-height: none;
-        object-fit: cover;
-        outline: none;
-        border: none;
-        box-shadow: none;
-        z-index: 0;
-    }
-
-    .wp-block-cover__inner-container {
-        position: relative;
-        z-index: 2;
-        width: 100%;
-        color: #fff;
-        padding: 1em;
-    }
-
-    /* Cover block with gradient overlay */
-    .wp-block-cover .wp-block-cover__gradient-background {
-        position: absolute;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        z-index: 1;
-    }
-
-
-    /* Fixed and repeated background options */
-    .wp-block-cover.has-parallax {
-        background-attachment: fixed;
-    }
-
-    .wp-block-cover.is-repeated {
-        background-repeat: repeat;
-        background-size: auto;
     }
 
     /* Fix for alignfull inside page-content-wrapper during transitions */
@@ -260,6 +112,43 @@
 </style>
 
 <script>
+    // Dark/Light mode functionality
+    function initTheme() {
+        const savedTheme = localStorage.getItem('theme');
+        const root = document.documentElement;
+
+        if (savedTheme === 'dark') {
+            root.classList.add('dark');
+            root.classList.remove('light');
+        } else if (savedTheme === 'light') {
+            root.classList.add('light');
+            root.classList.remove('dark');
+        }
+        // If no saved theme, system preference will be used via CSS
+    }
+
+    function toggleTheme() {
+        const root = document.documentElement;
+        const isDark = root.classList.contains('dark') ||
+            (!root.classList.contains('light') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        if (isDark) {
+            root.classList.remove('dark');
+            root.classList.add('light');
+            localStorage.setItem('theme', 'light');
+        } else {
+            root.classList.remove('light');
+            root.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        }
+    }
+
+    // Initialize theme on load
+    initTheme();
+
+    // Expose toggle function globally
+    (window as any).toggleTheme = toggleTheme;
+
     function isInternalLink(href: string | null): boolean {
         if (!href) return false;
         return !href.startsWith('http') &&
@@ -318,4 +207,79 @@
             document.body.classList.remove('is-entering');
         }, 1000);
     }
+
+    // WordPress Fit Text functionality
+    function fitText() {
+        const fitTextElements = document.querySelectorAll('.has-fit-text');
+        fitTextElements.forEach((el) => {
+            const element = el as HTMLElement;
+            const container = element.parentElement;
+            if (!container) return;
+
+            // Reset font size to measure natural width
+            element.style.fontSize = '';
+
+            const containerWidth = container.clientWidth - 32; // Account for padding
+
+            // Create a temporary span to measure text width
+            const tempSpan = document.createElement('span');
+            tempSpan.style.visibility = 'hidden';
+            tempSpan.style.position = 'absolute';
+            tempSpan.style.whiteSpace = 'nowrap';
+            tempSpan.style.font = window.getComputedStyle(element).font;
+            tempSpan.innerHTML = element.innerHTML;
+            document.body.appendChild(tempSpan);
+
+            const textWidth = tempSpan.offsetWidth;
+            document.body.removeChild(tempSpan);
+
+            if (textWidth > 0) {
+                // Calculate scale ratio and apply font size
+                const currentFontSize = parseFloat(window.getComputedStyle(element).fontSize);
+                const scale = containerWidth / textWidth;
+                const newFontSize = Math.floor(currentFontSize * scale);
+
+                // Cap at reasonable bounds
+                const finalFontSize = Math.min(Math.max(newFontSize, 16), 500);
+                element.style.fontSize = `${finalFontSize}px`;
+            }
+        });
+    }
+
+    // Run fit text on load and resize
+    fitText();
+    window.addEventListener('resize', fitText);
+
+    // WordPress Accordion Block functionality
+    document.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+
+        // Handle wp-block-accordion clicks
+        const accordionToggle = target.closest('.wp-block-accordion-heading__toggle');
+        if (accordionToggle) {
+            e.preventDefault();
+            const accordionItem = accordionToggle.closest('.wp-block-accordion-item');
+            if (accordionItem) {
+                const isOpen = accordionItem.classList.contains('is-open');
+                const panel = accordionItem.querySelector('.wp-block-accordion-panel');
+                const button = accordionToggle as HTMLButtonElement;
+
+                if (isOpen) {
+                    // Close accordion
+                    accordionItem.classList.remove('is-open');
+                    button.setAttribute('aria-expanded', 'false');
+                    if (panel) {
+                        panel.setAttribute('inert', '');
+                    }
+                } else {
+                    // Open accordion
+                    accordionItem.classList.add('is-open');
+                    button.setAttribute('aria-expanded', 'true');
+                    if (panel) {
+                        panel.removeAttribute('inert');
+                    }
+                }
+            }
+        }
+    });
 </script>

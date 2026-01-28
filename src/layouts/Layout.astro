@@ -9,6 +9,9 @@ import '@wordpress/block-library/build-style/theme.css';
 // Custom utilities
 import '../styles/utilities.css';
 
+// WordPress block overrides
+import '../styles/wp-blocks.css';
+
 export interface Props {
 	title: string;
 	metaDescription: string;
@@ -26,6 +29,17 @@ const { title, metaDescription } = Astro.props as Props;
 	<meta name="description" content={metaDescription}>
 	<link rel="icon" type="image/x-icon" href="/favicon.ico" />
 	<title>{title}</title>
+	<script is:inline>
+		// Prevent flash of wrong theme
+		(function() {
+			const savedTheme = localStorage.getItem('theme');
+			if (savedTheme === 'dark') {
+				document.documentElement.classList.add('dark');
+			} else if (savedTheme === 'light') {
+				document.documentElement.classList.add('light');
+			}
+		})();
+	</script>
 </head>
 
 <body>
