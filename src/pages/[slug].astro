@@ -65,5 +65,5 @@ const altText = item.featuredImage?.node?.altText ?? '';
 ---
 
 <Layout title={title} metaDescription={title}>
-    <BlogPost title={title} content={content} img={img} altText={altText} />
+    <BlogPost title={title} content={content} img={img} altText={altText} showTitle={type !== 'page'} />
 </Layout>

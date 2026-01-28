@@ -1,0 +1,45 @@
+/* Custom utility classes */
+
+/* Border radius */
+.br-small,
+.br-small img {
+    border-radius: 16px !important;
+    overflow: hidden;
+}
+
+.br-medium,
+.br-medium img {
+    border-radius: 24px !important;
+    overflow: hidden;
+}
+
+.br-large,
+.br-large img {
+    border-radius: 32px !important;
+    overflow: hidden;
+}
+
+/* WordPress theme color palette - adjust to match your theme */
+.has-contrast-background-color {
+    background-color: #000000 !important;
+}
+
+.has-base-background-color {
+    background-color: #ffffff !important;
+}
+
+.has-primary-background-color {
+    background-color: #0073aa !important;
+}
+
+.has-secondary-background-color {
+    background-color: #23282d !important;
+}
+
+.has-black-background-color {
+    background-color: #000000 !important;
+}
+
+.has-white-background-color {
+    background-color: #ffffff !important;
+}

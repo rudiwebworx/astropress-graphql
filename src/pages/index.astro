@@ -73,6 +73,7 @@ const metaDescription = frontPage?.title ?? 'My Own Blog';
 			content={frontPage.content}
 			img={frontPage.featuredImage?.node?.sourceUrl ?? ''}
 			altText={frontPage.featuredImage?.node?.altText ?? ''}
+			showTitle={false}
 		/>
 	) : (
 		<main class="mx-8">

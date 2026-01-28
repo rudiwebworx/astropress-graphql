@@ -4,12 +4,13 @@ export interface Props {
     content: string;
     img?: string;
     altText?: string;
+    showTitle?: boolean;
 }
 
-const { title, content, img, altText } = Astro.props
+const { title, content, img, altText, showTitle = true } = Astro.props
 ---
 
-<h1 class="text-center text-6xl font-extrabold mt-10">{title}</h1>
+{showTitle && <h1 class="text-center text-6xl font-extrabold mt-10">{title}</h1>}
 {img && (
     <div class="flex justify-center mt-10">
         <img src={img} width="1024" alt={altText || ''} />
