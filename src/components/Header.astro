@@ -214,16 +214,11 @@ try {
         padding: 1rem;
         margin-top: 0.5rem;
         min-width: 200px;
+        z-index: 1000;
     }
 
     .mobile-menu.active {
-        display: block;
-    }
-
-    /* Show menu on hover */
-    .header:hover .mobile-menu,
-    .mobile-menu:hover {
-        display: block;
+        display: block !important;
     }
 
     .menu-list {
@@ -250,46 +245,57 @@ try {
     }
 </style>
 
-<script>
-    // Flag to track if menu is initialized
-    let menuInitialized = false;
+<script is:inline>
+    (function() {
+        function setupMenu() {
+            const menuToggle = document.querySelector('.menu-toggle');
+            const mobileMenu = document.getElementById('mobile-menu');
 
-    function initMenu() {
-        const menuToggle = document.querySelector('.menu-toggle') as HTMLElement;
-        const mobileMenu = document.getElementById('mobile-menu');
+            if (!menuToggle || !mobileMenu) {
+                console.log('Menu elements not found');
+                return;
+            }
 
-        if (!menuToggle || !mobileMenu) return;
+            console.log('Menu setup running');
 
-        // Only initialize once since header persists
-        if (menuInitialized) return;
-        menuInitialized = true;
+            // Remove existing data attribute if present
+            if (menuToggle.hasAttribute('data-menu-initialized')) {
+                return;
+            }
+            menuToggle.setAttribute('data-menu-initialized', 'true');
 
-        // Toggle menu on button click
-        menuToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            mobileMenu.classList.toggle('active');
-        });
+            // Toggle menu on button click
+            menuToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Menu toggle clicked');
+                mobileMenu.classList.toggle('active');
+            });
 
-        // Close menu when clicking outside
-        document.addEventListener('click', (e) => {
-            const target = e.target as Node;
-            if (!menuToggle.contains(target) && !mobileMenu.contains(target)) {
+            // Close menu when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!menuToggle.contains(e.target) && !mobileMenu.contains(e.target)) {
+                    mobileMenu.classList.remove('active');
+                }
+            });
+        }
+
+        // Run on load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupMenu);
+        } else {
+            setupMenu();
+        }
+
+        // Re-run after view transitions
+        document.addEventListener('astro:page-load', setupMenu);
+
+        // Close menu when navigating
+        document.addEventListener('astro:before-preparation', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenu) {
                 mobileMenu.classList.remove('active');
             }
         });
-
-        // Close menu when navigating
-        document.addEventListener('astro:before-preparation', () => {
-            mobileMenu.classList.remove('active');
-        });
-    }
-
-    // Initialize on first load
-    initMenu();
-
-    // Re-run after any view transition in case header was replaced
-    document.addEventListener('astro:page-load', () => {
-        menuInitialized = false;
-        initMenu();
-    });
+    })();
 </script>
