@@ -278,18 +278,35 @@ const { title, metaDescription } = Astro.props as Props;
 		fitText();
 	});
 
-	// Prevent transitions when clicking on the current page
-	document.addEventListener('astro:before-preparation', (e) => {
-		const targetUrl = new URL((e as any).formData?.get('url') || (e as any).to || window.location.href);
-		const currentUrl = new URL(window.location.href);
+	// Prevent navigation when clicking on the current page
+	document.addEventListener('click', (e) => {
+		const link = (e.target as HTMLElement).closest('a');
+		if (!link) return;
 
-		// Normalize paths by removing trailing slashes
-		const targetPath = targetUrl.pathname.replace(/\/$/, '');
-		const currentPath = currentUrl.pathname.replace(/\/$/, '');
+		const href = link.getAttribute('href');
+		if (!href) return;
 
-		// If navigating to the same page, prevent the transition
-		if (targetPath === currentPath) {
-			e.preventDefault();
+		// Skip external links and special links
+		if (href.startsWith('http') || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+			return;
 		}
-	});
+
+		// Check if navigating to the current page
+		try {
+			const targetUrl = new URL(href, window.location.origin);
+			const currentUrl = new URL(window.location.href);
+
+			// Normalize paths by removing trailing slashes
+			const targetPath = targetUrl.pathname.replace(/\/$/, '') || '/';
+			const currentPath = currentUrl.pathname.replace(/\/$/, '') || '/';
+
+			// If navigating to the same page, prevent the default action
+			if (targetPath === currentPath && targetUrl.hash === currentUrl.hash) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
+		} catch (err) {
+			// Invalid URL, let it proceed normally
+		}
+	}, true); // Use capture phase to catch it early
 </script>
