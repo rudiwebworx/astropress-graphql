@@ -76,7 +76,7 @@ const metaDescription = frontPage?.title ?? 'My Own Blog';
 			showTitle={false}
 		/>
 	) : (
-		<main class="mx-8">
+		<div class="mx-8">
 			<h1 class="text-center mt-20 mb-20"><span class="text-6xl font-extrabold">Blog</span></h1>
 			{heroPost && (
 				<div class="m-auto">
@@ -92,6 +92,6 @@ const metaDescription = frontPage?.title ?? 'My Own Blog';
 					alt={post.node.featuredImage?.node?.altText ?? ''} />
 				))}
 			</div>
-		</main>
+		</div>
 	)}
 </Layout>

@@ -1,6 +1,6 @@
 ---
+import { ViewTransitions } from 'astro:transitions';
 import Header from '../components/Header.astro';
-import PageTransition from '../components/PageTransition.astro';
 
 // Gutenberg block styles
 import '@wordpress/block-library/build-style/style.css';
@@ -29,6 +29,7 @@ const { title, metaDescription } = Astro.props as Props;
 	<meta name="description" content={metaDescription}>
 	<link rel="icon" type="image/x-icon" href="/favicon.ico" />
 	<title>{title}</title>
+	<ViewTransitions />
 	<script is:inline>
 		// Prevent flash of wrong theme
 		(function() {
@@ -43,33 +44,252 @@ const { title, metaDescription } = Astro.props as Props;
 </head>
 
 <body>
-	<PageTransition />
 	<Header />
-	<div class="page-content-wrapper">
+	<main transition:name="main-content">
 		<slot />
-	</div>
+	</main>
 </body>
 
 </html>
-<style>
+<style is:global>
+	/* Light mode (default) */
+	:root {
+		--color-bg-body: #222;
+		--color-bg-content: #eee;
+		--color-text: #1a1a1a;
+	}
+
+	/* Dark mode via class */
+	:root.dark {
+		--color-bg-body: #111;
+		--color-bg-content: #313131;
+		--color-text: #eee;
+	}
+
+	/* Dark mode via system preference (when no manual override) */
+	@media (prefers-color-scheme: dark) {
+		:root:not(.light) {
+			--color-bg-body: #111;
+			--color-bg-content: #313131;
+			--color-text: #eee;
+		}
+	}
+
 	html {
 		font-family: system-ui, sans-serif;
 		font-size: var(--font-size-base);
 		color: var(--color-text);
-		background-color: var(--color-bg);
+	}
+
+	body {
+		background-color: var(--color-bg-body);
+		min-height: 100vh;
+		overflow-x: hidden;
+		color: var(--color-text);
+		margin: 0;
 	}
 
 	main {
 		margin: auto;
+		background-color: var(--color-bg-content);
+		min-height: 100vh;
+		padding-top: 80px;
+		position: relative;
 	}
 
-	body {
-		margin: 0;
-		overflow-x: hidden;
-	}
-
-	:global(code) {
+	code {
 		font-family: Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono,
 			Bitstream Vera Sans Mono, Courier New, monospace;
 	}
+
+	/* Header should always be on top and not animate */
+	::view-transition-group(header) {
+		z-index: 99999;
+	}
+
+	::view-transition-old(header),
+	::view-transition-new(header) {
+		animation: none;
+		mix-blend-mode: normal;
+	}
+
+	/* Custom View Transition Animations - Side-by-side shrink/slide/expand */
+	/* Only animate the main content, not the header */
+	::view-transition-old(main-content) {
+		animation: exitAnimation 800ms cubic-bezier(0.4, 0, 0.2, 1);
+		z-index: 1;
+	}
+
+	::view-transition-new(main-content) {
+		animation: enterAnimation 1000ms cubic-bezier(0.4, 0, 0.2, 1);
+		z-index: 1;
+	}
+
+	::view-transition-group(main-content) {
+		z-index: 1;
+	}
+
+	@keyframes exitAnimation {
+		0% {
+			transform: scale(1) translateX(0) translateY(0);
+			border-radius: 0;
+			box-shadow: none;
+		}
+		40% {
+			transform: scale(0.6) translateX(0) translateY(0);
+			border-radius: 24px;
+			box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+		}
+		100% {
+			transform: scale(0.6) translateX(-200%) translateY(0);
+			border-radius: 24px;
+			box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+		}
+	}
+
+	@keyframes enterAnimation {
+		0% {
+			transform: scale(0.6) translateX(200%) translateY(0);
+			border-radius: 24px;
+			box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+		}
+		50% {
+			transform: scale(0.6) translateX(0) translateY(0);
+			border-radius: 24px;
+			box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+		}
+		100% {
+			transform: scale(1) translateX(0) translateY(0);
+			border-radius: 0;
+			box-shadow: none;
+		}
+	}
+
+	/* Prevent overflow during transitions */
+	::view-transition-old(main-content),
+	::view-transition-new(main-content) {
+		overflow: hidden;
+	}
 </style>
+
+<script>
+	// Dark/Light mode functionality
+	function initTheme() {
+		const savedTheme = localStorage.getItem('theme');
+		const root = document.documentElement;
+
+		if (savedTheme === 'dark') {
+			root.classList.add('dark');
+			root.classList.remove('light');
+		} else if (savedTheme === 'light') {
+			root.classList.add('light');
+			root.classList.remove('dark');
+		}
+	}
+
+	function toggleTheme() {
+		const root = document.documentElement;
+		const isDark = root.classList.contains('dark') ||
+			(!root.classList.contains('light') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+		if (isDark) {
+			root.classList.remove('dark');
+			root.classList.add('light');
+			localStorage.setItem('theme', 'light');
+		} else {
+			root.classList.remove('light');
+			root.classList.add('dark');
+			localStorage.setItem('theme', 'dark');
+		}
+	}
+
+	// Initialize theme on load
+	initTheme();
+
+	// Expose toggle function globally
+	(window as any).toggleTheme = toggleTheme;
+
+	// WordPress Fit Text functionality
+	function fitText() {
+		const fitTextElements = document.querySelectorAll('.has-fit-text');
+		fitTextElements.forEach((el) => {
+			const element = el as HTMLElement;
+			const container = element.parentElement;
+			if (!container) return;
+
+			element.style.fontSize = '';
+			const containerWidth = container.clientWidth - 32;
+
+			const tempSpan = document.createElement('span');
+			tempSpan.style.visibility = 'hidden';
+			tempSpan.style.position = 'absolute';
+			tempSpan.style.whiteSpace = 'nowrap';
+			tempSpan.style.font = window.getComputedStyle(element).font;
+			tempSpan.innerHTML = element.innerHTML;
+			document.body.appendChild(tempSpan);
+
+			const textWidth = tempSpan.offsetWidth;
+			document.body.removeChild(tempSpan);
+
+			if (textWidth > 0) {
+				const currentFontSize = parseFloat(window.getComputedStyle(element).fontSize);
+				const scale = containerWidth / textWidth;
+				const newFontSize = Math.floor(currentFontSize * scale);
+				const finalFontSize = Math.min(Math.max(newFontSize, 16), 500);
+				element.style.fontSize = `${finalFontSize}px`;
+			}
+		});
+	}
+
+	// WordPress Accordion Block functionality
+	function handleAccordion(e: Event) {
+		const target = e.target as HTMLElement;
+		const accordionToggle = target.closest('.wp-block-accordion-heading__toggle');
+
+		if (accordionToggle) {
+			e.preventDefault();
+			const accordionItem = accordionToggle.closest('.wp-block-accordion-item');
+			if (accordionItem) {
+				const isOpen = accordionItem.classList.contains('is-open');
+				const panel = accordionItem.querySelector('.wp-block-accordion-panel');
+				const button = accordionToggle as HTMLButtonElement;
+
+				if (isOpen) {
+					accordionItem.classList.remove('is-open');
+					button.setAttribute('aria-expanded', 'false');
+					if (panel) panel.setAttribute('inert', '');
+				} else {
+					accordionItem.classList.add('is-open');
+					button.setAttribute('aria-expanded', 'true');
+					if (panel) panel.removeAttribute('inert');
+				}
+			}
+		}
+	}
+
+	// Run on initial page load
+	fitText();
+	window.addEventListener('resize', fitText);
+	document.addEventListener('click', handleAccordion);
+
+	// Re-run after view transitions
+	document.addEventListener('astro:after-swap', () => {
+		initTheme();
+		fitText();
+	});
+
+	// Prevent transitions when clicking on the current page
+	document.addEventListener('astro:before-preparation', (e) => {
+		const targetUrl = new URL((e as any).formData?.get('url') || (e as any).to || window.location.href);
+		const currentUrl = new URL(window.location.href);
+
+		// Normalize paths by removing trailing slashes
+		const targetPath = targetUrl.pathname.replace(/\/$/, '');
+		const currentPath = currentUrl.pathname.replace(/\/$/, '');
+
+		// If navigating to the same page, prevent the transition
+		if (targetPath === currentPath) {
+			e.preventDefault();
+		}
+	});
+</script>

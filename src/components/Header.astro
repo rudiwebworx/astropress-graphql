@@ -60,7 +60,7 @@ try {
 }
 ---
 
-<header class="header">
+<header class="header" transition:name="header" transition:animate="none">
     <nav class="nav-container">
         <button class="menu-toggle" aria-label="Toggle menu">
             <span class="menu-icon"></span>
@@ -104,11 +104,12 @@ try {
         top: 0;
         left: 0;
         right: 0;
-        z-index: 10000;
+        z-index: 99999;
         width: 100%;
         display: flex;
         justify-content: center;
         padding: 1rem;
+        isolation: isolate;
     }
 
     .nav-container {
@@ -219,6 +220,12 @@ try {
         display: block;
     }
 
+    /* Show menu on hover */
+    .header:hover .mobile-menu,
+    .mobile-menu:hover {
+        display: block;
+    }
+
     .menu-list {
         list-style: none;
         margin: 0;
@@ -244,16 +251,45 @@ try {
 </style>
 
 <script>
-    const menuToggle = document.querySelector('.menu-toggle');
-    const mobileMenu = document.getElementById('mobile-menu');
+    // Flag to track if menu is initialized
+    let menuInitialized = false;
 
-    menuToggle?.addEventListener('click', () => {
-        mobileMenu?.classList.toggle('active');
-    });
+    function initMenu() {
+        const menuToggle = document.querySelector('.menu-toggle') as HTMLElement;
+        const mobileMenu = document.getElementById('mobile-menu');
 
-    document.addEventListener('click', (e) => {
-        if (!menuToggle?.contains(e.target as Node) && !mobileMenu?.contains(e.target as Node)) {
-            mobileMenu?.classList.remove('active');
-        }
+        if (!menuToggle || !mobileMenu) return;
+
+        // Only initialize once since header persists
+        if (menuInitialized) return;
+        menuInitialized = true;
+
+        // Toggle menu on button click
+        menuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mobileMenu.classList.toggle('active');
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const target = e.target as Node;
+            if (!menuToggle.contains(target) && !mobileMenu.contains(target)) {
+                mobileMenu.classList.remove('active');
+            }
+        });
+
+        // Close menu when navigating
+        document.addEventListener('astro:before-preparation', () => {
+            mobileMenu.classList.remove('active');
+        });
+    }
+
+    // Initialize on first load
+    initMenu();
+
+    // Re-run after any view transition in case header was replaced
+    document.addEventListener('astro:page-load', () => {
+        menuInitialized = false;
+        initMenu();
     });
 </script>
