@@ -43,3 +43,95 @@
 .has-white-background-color {
     background-color: #ffffff !important;
 }
+
+/* ============================================
+   GSAP Animation Utilities
+   ============================================ */
+
+/* Split text animation styles */
+.split-chars,
+.split-words,
+.split-lines,
+.text-reveal {
+    overflow: hidden;
+}
+
+.split-chars .char,
+.split-words .word,
+.split-lines .line {
+    display: inline-block;
+}
+
+.split-chars .char {
+    transform-origin: 50% 100%;
+}
+
+.split-words .word {
+    transform-origin: 0% 50%;
+    margin: 0 0.25em 0 0;
+}
+
+.text-reveal .char {
+    display: inline-block;
+    perspective: 1000px;
+}
+
+/* Parallax image effects */
+.parallax,
+.parallax-zoom,
+.parallax-reveal {
+    will-change: transform;
+}
+
+/* Container for parallax-reveal to prevent overflow */
+.parallax-reveal {
+    object-fit: cover;
+}
+
+/* Optional: Add a container class for parallax images */
+.parallax-container {
+    overflow: hidden;
+    position: relative;
+}
+
+.parallax-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Delay utility classes */
+/* Use with any GSAP animation: delay-1 = 0.5s, delay-2 = 1.0s, etc. */
+.delay-1 { --gsap-delay: 0.5s; }
+.delay-2 { --gsap-delay: 1s; }
+.delay-3 { --gsap-delay: 1.5s; }
+.delay-4 { --gsap-delay: 2s; }
+.delay-5 { --gsap-delay: 2.5s; }
+.delay-6 { --gsap-delay: 3s; }
+.delay-7 { --gsap-delay: 3.5s; }
+.delay-8 { --gsap-delay: 4s; }
+.delay-9 { --gsap-delay: 4.5s; }
+.delay-10 { --gsap-delay: 5s; }
+.delay-11 { --gsap-delay: 5.5s; }
+.delay-12 { --gsap-delay: 6s; }
+.delay-13 { --gsap-delay: 6.5s; }
+.delay-14 { --gsap-delay: 7s; }
+.delay-15 { --gsap-delay: 7.5s; }
+.delay-16 { --gsap-delay: 8s; }
+.delay-17 { --gsap-delay: 8.5s; }
+.delay-18 { --gsap-delay: 9s; }
+.delay-19 { --gsap-delay: 9.5s; }
+.delay-20 { --gsap-delay: 10s; }
+
+/* Ticker text effect */
+.ticker-text {
+    white-space: nowrap;
+    will-change: transform;
+    display: inline-block;
+}
+
+/* Optional: Container for ticker to prevent overflow */
+.ticker-container {
+    overflow: hidden;
+    width: 100%;
+}
