@@ -81,6 +81,14 @@ const { title, metaDescription } = Astro.props as Props;
 		color: var(--color-text);
 	}
 
+	html.lenis {
+		height: auto;
+	}
+
+	html.lenis body {
+		height: auto;
+	}
+
 	body {
 		background-color: var(--color-bg-body);
 		min-height: 100vh;
@@ -309,4 +317,117 @@ const { title, metaDescription } = Astro.props as Props;
 			// Invalid URL, let it proceed normally
 		}
 	}, true); // Use capture phase to catch it early
+</script>
+
+<script>
+	import gsap from 'gsap';
+	import { ScrollTrigger } from 'gsap/ScrollTrigger';
+	import Lenis from 'lenis';
+
+	// Register GSAP plugins
+	gsap.registerPlugin(ScrollTrigger);
+
+	let lenis: Lenis | null = null;
+
+	function initSmoothScroll() {
+		// Destroy existing Lenis instance
+		if (lenis) {
+			lenis.destroy();
+			lenis = null;
+		}
+
+		// Create new Lenis instance for smooth scrolling
+		lenis = new Lenis({
+			duration: 1.2,
+			easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+			orientation: 'vertical',
+			gestureOrientation: 'vertical',
+			smoothWheel: true,
+			wheelMultiplier: 1,
+			smoothTouch: false,
+			touchMultiplier: 2,
+			infinite: false
+		});
+
+		// Connect Lenis to GSAP ScrollTrigger
+		lenis.on('scroll', ScrollTrigger.update);
+
+		// Sync ScrollTrigger with Lenis
+		gsap.ticker.add((time) => {
+			lenis?.raf(time * 1000);
+		});
+
+		gsap.ticker.lagSmoothing(0);
+	}
+
+	function initGSAP() {
+		// Kill existing ScrollTriggers
+		ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+
+		// Refresh ScrollTrigger to recalculate positions
+		ScrollTrigger.refresh();
+
+		// Animate elements with .grow-on-scroll class
+		// Scales from 0.6 to 1 as element enters viewport
+		gsap.utils.toArray('.grow-on-scroll').forEach((element: any) => {
+			gsap.fromTo(element,
+				{
+					scale: 0.6,
+					transformOrigin: 'center center'
+				},
+				{
+					scale: 1,
+					duration: 1,
+					ease: 'power2.out',
+					scrollTrigger: {
+						trigger: element,
+						start: 'top 80%',
+						end: 'top 20%',
+						scrub: 1
+					}
+				}
+			);
+		});
+
+		// Animate elements with .fade-in-up class
+		// Fades in and moves up smoothly when entering viewport
+		gsap.utils.toArray('.fade-in-up').forEach((element: any) => {
+			gsap.fromTo(element,
+				{
+					opacity: 0,
+					y: 60
+				},
+				{
+					opacity: 1,
+					y: 0,
+					duration: 1.2,
+					ease: 'power2.out',
+					scrollTrigger: {
+						trigger: element,
+						start: 'top 85%',
+						end: 'top 50%',
+						scrub: 1
+					}
+				}
+			);
+		});
+	}
+
+	function init() {
+		initSmoothScroll();
+		initGSAP();
+	}
+
+	// Initialize on load
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', init);
+	} else {
+		init();
+	}
+
+	// Re-initialize after view transitions
+	document.addEventListener('astro:after-swap', () => {
+		// Small delay to ensure DOM is ready
+		setTimeout(init, 100);
+	});
 </script>
