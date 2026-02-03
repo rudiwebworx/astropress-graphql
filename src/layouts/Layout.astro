@@ -597,6 +597,7 @@ const { title, metaDescription } = Astro.props as Props;
 		// Ticker text effect - scrolls from right to left based on scroll
 		gsap.utils.toArray('.ticker-text').forEach((element: any) => {
 			const delay = getDelay(element);
+			const container = element.closest('.ticker-container') || element.parentElement;
 
 			// Get the width of the text to calculate movement
 			const textWidth = element.scrollWidth;
@@ -606,11 +607,51 @@ const { title, metaDescription } = Astro.props as Props;
 				ease: 'none',
 				delay: delay,
 				scrollTrigger: {
-					trigger: element,
+					trigger: container,
 					start: 'top bottom',
 					end: 'bottom top',
-					scrub: 1
+					scrub: 1,
+					invalidateOnRefresh: true
 				}
+			});
+		});
+
+		// Horizontal scroll effect
+		gsap.utils.toArray('.horizontal-container').forEach((container: any) => {
+			// Find the flex container that directly holds the horizontal scroll items
+			const flexContainer = container.querySelector('.wp-block-group.is-layout-flex');
+			const scrollItems = container.querySelectorAll('.horizontal-scroll');
+
+			if (scrollItems.length === 0 || !flexContainer) return;
+
+			// Calculate total width of all items
+			let totalWidth = 0;
+			scrollItems.forEach((item: HTMLElement) => {
+				totalWidth += item.offsetWidth;
+			});
+
+			// Calculate the scroll distance (total width minus viewport width)
+			const scrollDistance = totalWidth - window.innerWidth;
+
+			if (scrollDistance <= 0) return;
+
+			// Create horizontal scroll animation
+			const tl = gsap.timeline({
+				scrollTrigger: {
+					trigger: container,
+					start: 'top top',
+					end: () => `+=${scrollDistance}`,
+					scrub: 1,
+					pin: true,
+					anticipatePin: 1,
+					invalidateOnRefresh: true
+				}
+			});
+
+			// Animate the flex container horizontally
+			tl.to(flexContainer, {
+				x: -scrollDistance,
+				ease: 'none'
 			});
 		});
 	}
