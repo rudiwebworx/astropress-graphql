@@ -389,7 +389,7 @@
 
 .wp-block-accordion-heading__toggle {
     width: 100%;
-    padding: 1.5em 2em;
+    padding: 1.5em 1.5em 2em;
     background-color: transparent;
     border: none;
     cursor: pointer;
@@ -412,23 +412,36 @@
 }
 
 .wp-block-accordion-heading__toggle-icon {
-    font-size: 1.2em;
-    font-weight: 300;
-    line-height: 1;
+    font-size: 0;
+    line-height: 0;
     transition: transform 0.3s ease;
     font-style: normal;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
 }
 
-/* Hide default WordPress icon content */
+/* Hide all default WordPress icon content */
+.wp-block-accordion-heading__toggle-icon *,
 .wp-block-accordion-heading__toggle-icon svg,
 .wp-block-accordion-heading__toggle-icon::before {
-    display: none;
+    display: none !important;
 }
 
 /* Add custom chevron icon */
 .wp-block-accordion-heading__toggle-icon::after {
     content: '›';
     display: block;
+    font-size: 30px;
+    font-weight: 300;
+    line-height: 1;
+    color: #ffffff;
+    margin-top: -6px;
 }
 
 .wp-block-accordion-item.is-open .wp-block-accordion-heading__toggle-icon {
