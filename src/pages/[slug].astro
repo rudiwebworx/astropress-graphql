@@ -62,8 +62,19 @@ const title = item.title;
 const content = item.content;
 const img = item.featuredImage?.node?.sourceUrl ?? '';
 const altText = item.featuredImage?.node?.altText ?? '';
+const date = item.date;
+const author = item.author;
+const seo = item.seo;
 ---
 
-<Layout title={title} metaDescription={title}>
-    <BlogPost title={title} content={content} img={img} altText={altText} showTitle={type !== 'page'} />
+<Layout title={title} metaDescription={title} seo={seo}>
+    <BlogPost
+        title={title}
+        content={content}
+        img={img}
+        altText={altText}
+        showTitle={type !== 'page'}
+        date={type === 'post' ? date : undefined}
+        author={type === 'post' ? author : undefined}
+    />
 </Layout>

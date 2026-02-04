@@ -64,9 +64,22 @@ if (showOnFront === 'page' && frontPageId) {
 
 const pageTitle = frontPage?.title ?? 'Blog';
 const metaDescription = frontPage?.title ?? 'My Own Blog';
+
+// SEO data
+let seoData = null;
+if (frontPage?.seo) {
+	// Use SEO data from the static front page
+	seoData = frontPage.seo;
+} else {
+	// Default SEO for blog listing
+	seoData = {
+		title: 'Blog - Latest Posts',
+		metaDesc: 'Read our latest blog posts and articles. Stay updated with fresh content.',
+	};
+}
 ---
 
-<Layout title={pageTitle} metaDescription={metaDescription}>
+<Layout title={pageTitle} metaDescription={metaDescription} seo={seoData}>
 	{frontPage ? (
 		<BlogPost
 			title={frontPage.title}

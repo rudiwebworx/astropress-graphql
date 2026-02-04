@@ -15,9 +15,44 @@ import '../styles/wp-blocks.css';
 export interface Props {
 	title: string;
 	metaDescription: string;
+	seo?: {
+		title?: string;
+		metaDesc?: string;
+		opengraphTitle?: string;
+		opengraphDescription?: string;
+		opengraphImage?: { sourceUrl?: string };
+		twitterTitle?: string;
+		twitterDescription?: string;
+		twitterImage?: { sourceUrl?: string };
+		canonical?: string;
+		metaRobotsNoindex?: string;
+		metaRobotsNofollow?: string;
+	};
 }
 
-const { title, metaDescription } = Astro.props as Props;
+const { title, metaDescription, seo } = Astro.props as Props;
+
+// Use Yoast SEO data if available, otherwise fall back to default props
+const pageTitle = seo?.title || title;
+const pageDescription = seo?.metaDesc || metaDescription;
+const ogTitle = seo?.opengraphTitle || pageTitle;
+const ogDescription = seo?.opengraphDescription || pageDescription;
+const ogImage = seo?.opengraphImage?.sourceUrl;
+const twitterTitle = seo?.twitterTitle || ogTitle;
+const twitterDescription = seo?.twitterDescription || ogDescription;
+const twitterImage = seo?.twitterImage?.sourceUrl || ogImage;
+const canonical = seo?.canonical;
+const noindex = seo?.metaRobotsNoindex === 'noindex';
+const nofollow = seo?.metaRobotsNofollow === 'nofollow';
+
+// Construct robots meta content
+let robotsContent = '';
+if (noindex || nofollow) {
+	const parts = [];
+	if (noindex) parts.push('noindex');
+	if (nofollow) parts.push('nofollow');
+	robotsContent = parts.join(', ');
+}
 ---
 
 <!DOCTYPE html>
@@ -26,9 +61,24 @@ const { title, metaDescription } = Astro.props as Props;
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width" />
-	<meta name="description" content={metaDescription}>
+	<meta name="description" content={pageDescription}>
+	{robotsContent && <meta name="robots" content={robotsContent} />}
+	{canonical && <link rel="canonical" href={canonical} />}
 	<link rel="icon" type="image/x-icon" href="/favicon.ico" />
-	<title>{title}</title>
+	<title>{pageTitle}</title>
+
+	<!-- Open Graph / Facebook -->
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content={ogTitle} />
+	<meta property="og:description" content={ogDescription} />
+	{ogImage && <meta property="og:image" content={ogImage} />}
+
+	<!-- Twitter -->
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content={twitterTitle} />
+	<meta name="twitter:description" content={twitterDescription} />
+	{twitterImage && <meta name="twitter:image" content={twitterImage} />}
+
 	<ViewTransitions />
 	<script is:inline>
 		// Prevent flash of wrong theme

@@ -5,17 +5,66 @@ export interface Props {
     img?: string;
     altText?: string;
     showTitle?: boolean;
+    date?: string;
+    author?: any;
 }
 
-const { title, content, img, altText, showTitle = true } = Astro.props
+const { title, content, img, altText, showTitle = true, date, author } = Astro.props;
+
+// Format date helper
+function formatDate(dateString: string) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+const authorName = author?.node?.name || author?.name;
+const authorAvatar = author?.node?.avatar?.url || author?.avatar?.url;
 ---
 
-{showTitle && <h1 class="text-center text-6xl font-extrabold mt-10">{title}</h1>}
-{img && (
-    <div class="flex justify-center mt-10">
-        <img src={img} width="1024" alt={altText || ''} />
+<article class="max-w-4xl mx-auto px-4">
+    {showTitle && (
+        <header class="mt-10 mb-8">
+            <h1 class="text-center text-5xl md:text-6xl font-extrabold mb-6" set:html={title} />
+
+            {(date || authorName) && (
+                <div class="flex items-center justify-center gap-4 text-gray-600 dark:text-gray-400">
+                    {date && (
+                        <time datetime={date} class="text-sm">
+                            {formatDate(date)}
+                        </time>
+                    )}
+
+                    {date && authorName && <span class="text-sm">•</span>}
+
+                    {authorName && (
+                        <div class="flex items-center gap-2">
+                            {authorAvatar && (
+                                <img
+                                    src={authorAvatar}
+                                    alt={authorName}
+                                    class="w-8 h-8 rounded-full"
+                                />
+                            )}
+                            <span class="text-sm font-medium">{authorName}</span>
+                        </div>
+                    )}
+                </div>
+            )}
+        </header>
+    )}
+
+    {img && (
+        <div class="flex justify-center mt-8 mb-10">
+            <img src={img} width="1024" alt={altText || ''} class="rounded-lg shadow-lg" />
+        </div>
+    )}
+
+    <div class="entry-content wp-block-post-content mt-10 mb-20">
+        <section set:html={content} />
     </div>
-)}
-<div class="entry-content wp-block-post-content mt-10 mb-20">
-    <section set:html={content} />
-</div>
+</article>

@@ -1,0 +1,112 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { getFirstPostsQuery } from '../lib/queries';
+
+const apiUrl = `${import.meta.env.WORDPRESS_URL}/${import.meta.env.GRAPHQL_API_PATH}`;
+
+// Fetch all posts
+const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        query: getFirstPostsQuery,
+        variables: {
+            first: 100,
+        },
+    }),
+});
+
+const json = await response.json();
+const posts = json.data?.posts?.edges ?? [];
+
+// SEO data for the archive page
+const archiveSeo = {
+    title: 'Blog Posts - All Articles',
+    metaDesc: 'Browse all blog posts and articles. Stay updated with our latest content.',
+};
+
+// Format date helper
+function formatDate(dateString: string) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+---
+
+<Layout title={archiveSeo.title} metaDescription={archiveSeo.metaDesc}>
+    <div class="container mx-auto px-4 py-16">
+        <h1 class="text-5xl font-bold mb-12 text-center">Blog Posts</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {posts.map((post: any) => {
+                const { title, excerpt, slug, featuredImage, date, author } = post.node;
+                const imgUrl = featuredImage?.node?.sourceUrl;
+                const altText = featuredImage?.node?.altText || title;
+                const authorName = author?.node?.name || 'Unknown Author';
+
+                return (
+                    <article class="post-card bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+                        {imgUrl && (
+                            <a href={`/${slug}`} class="block">
+                                <img
+                                    src={imgUrl}
+                                    alt={altText}
+                                    class="w-full h-64 object-cover"
+                                />
+                            </a>
+                        )}
+
+                        <div class="p-6">
+                            <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                <span>{formatDate(date)}</span>
+                                <span>•</span>
+                                <span>{authorName}</span>
+                            </div>
+
+                            <h2 class="text-2xl font-bold mb-3 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                <a href={`/${slug}`} set:html={title} />
+                            </h2>
+
+                            {excerpt && (
+                                <div class="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3" set:html={excerpt} />
+                            )}
+
+                            <a
+                                href={`/${slug}`}
+                                class="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                Read More
+                            </a>
+                        </div>
+                    </article>
+                );
+            })}
+        </div>
+
+        {posts.length === 0 && (
+            <p class="text-center text-gray-600 dark:text-gray-400 text-xl">
+                No posts found.
+            </p>
+        )}
+    </div>
+</Layout>
+
+<style>
+    .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .post-card {
+        transition: transform 0.3s ease;
+    }
+
+    .post-card:hover {
+        transform: translateY(-4px);
+    }
+</style>

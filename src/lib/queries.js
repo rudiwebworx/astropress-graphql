@@ -36,6 +36,23 @@ query AllPosts($first: Int) {
             }
           }
         }
+        seo {
+          title
+          metaDesc
+          opengraphTitle
+          opengraphDescription
+          opengraphImage {
+            sourceUrl
+          }
+          twitterTitle
+          twitterDescription
+          twitterImage {
+            sourceUrl
+          }
+          canonical
+          metaRobotsNoindex
+          metaRobotsNofollow
+        }
       }
     }
   }
@@ -106,6 +123,23 @@ query AllPages {
             altText
           }
         }
+        seo {
+          title
+          metaDesc
+          opengraphTitle
+          opengraphDescription
+          opengraphImage {
+            sourceUrl
+          }
+          twitterTitle
+          twitterDescription
+          twitterImage {
+            sourceUrl
+          }
+          canonical
+          metaRobotsNoindex
+          metaRobotsNofollow
+        }
       }
     }
   }
@@ -143,6 +177,23 @@ export const getPageById = `query GetPageById($id: ID!) {
         sourceUrl
         altText
       }
+    }
+    seo {
+      title
+      metaDesc
+      opengraphTitle
+      opengraphDescription
+      opengraphImage {
+        sourceUrl
+      }
+      twitterTitle
+      twitterDescription
+      twitterImage {
+        sourceUrl
+      }
+      canonical
+      metaRobotsNoindex
+      metaRobotsNofollow
     }
   }
 }`;
